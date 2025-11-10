@@ -107,9 +107,26 @@ android {
     }
 }
 
+configurations.all {
+    resolutionStrategy {
+        force 'androidx.core:core:1.13.1'
+        force 'androidx.core:core-ktx:1.13.1'
+    }
+}
+
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
+
+    // Force androidx.core versions to be compatible with compileSdk 34
+    constraints {
+        implementation("androidx.core:core:1.13.1") {
+            because("Requires compileSdk 34")
+        }
+        implementation("androidx.core:core-ktx:1.13.1") {
+            because("Requires compileSdk 34")
+        }
+    }
 
     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")
