@@ -6,11 +6,13 @@ class BackgroundLocationService {
   }
 
   async stop() {
-    // No-op
   }
 
   isRunning(): boolean {
     return false;
+  }
+
+  async setSpeedAlert(_enabled: boolean, _threshold: number): Promise<void> {
   }
 }
 
@@ -26,4 +28,11 @@ export const stopBackgroundTracking = async (): Promise<void> => {
 
 export const startBackgroundTracking = async (): Promise<void> => {
   await backgroundLocationService.start();
+};
+
+export const setBackgroundSpeedAlert = async (
+  enabled: boolean,
+  threshold: number,
+): Promise<void> => {
+  await backgroundLocationService.setSpeedAlert(enabled, threshold);
 };

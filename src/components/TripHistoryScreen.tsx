@@ -131,7 +131,9 @@ export function TripHistoryScreen(_props: TripHistoryScreenProps = {}) {
   );
 
   const handleClearAll = useCallback(() => {
-    if (tripHistory.length === 0) return;
+    if (tripHistory.length === 0) {
+      return;
+    }
 
     Alert.alert('Xóa tất cả', 'Bạn có chắc muốn xóa toàn bộ lịch sử chuyến đi?', [
       { text: 'Hủy', style: 'cancel' },
@@ -236,7 +238,7 @@ export function TripHistoryScreen(_props: TripHistoryScreenProps = {}) {
         </TouchableOpacity>
       );
     },
-    [styles, formatDistance, formatDuration, formatDate, handleDeleteTrip, setSelectedTrip]
+    [styles, formatDuration, formatDate, handleDeleteTrip, setSelectedTrip]
   );
 
   if (isLoading) {

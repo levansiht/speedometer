@@ -1,16 +1,19 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { AppState, AppStateStatus } from 'react-native';
-import { isBackgroundTrackingActive } from '../services/BackgroundLocationService';
+import React, {useEffect, useState} from 'react';
+import {View, Text, StyleSheet} from 'react-native';
+import {AppState, AppStateStatus} from 'react-native';
+import {isBackgroundTrackingActive} from '../services/BackgroundLocationService';
 
-export const BackgroundTrackingIndicator: React.FC = () => {
+export function BackgroundTrackingIndicator() {
   const [isTracking, setIsTracking] = useState(false);
   const [isBackground, setIsBackground] = useState(false);
 
   useEffect(() => {
     checkTrackingStatus();
 
-    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    const subscription = AppState.addEventListener(
+      'change',
+      handleAppStateChange,
+    );
 
     const interval = setInterval(checkTrackingStatus, 3000);
 
@@ -32,14 +35,13 @@ export const BackgroundTrackingIndicator: React.FC = () => {
   if (!isTracking || isBackground) {
     return null;
   }
-
   return (
     <View style={styles.container}>
       <View style={styles.indicator} />
       <Text style={styles.text}>Đang theo dõi hành trình (ngầm)</Text>
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -54,7 +56,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     zIndex: 1000,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 5,

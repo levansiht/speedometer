@@ -49,8 +49,12 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
 
   const toggleTheme = () => {
     setThemeState((current) => {
-      if (current === ThemeName.LIGHT) return ThemeName.DARK;
-      if (current === ThemeName.DARK) return ThemeName.LIGHT;
+      if (current === ThemeName.LIGHT) {
+        return ThemeName.DARK;
+      }
+      if (current === ThemeName.DARK) {
+        return ThemeName.LIGHT;
+      }
       return ThemeName.LIGHT;
     });
   };

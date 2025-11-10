@@ -1,22 +1,16 @@
 import React from 'react';
-import {
-  View,
-  TouchableOpacity,
-  Text,
-  StyleSheet,
-  Animated,
-} from 'react-native';
-import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import {View, TouchableOpacity, Text, StyleSheet} from 'react-native';
+import {BottomTabBarProps} from '@react-navigation/bottom-tabs';
 
-export const CustomTabBar: React.FC<BottomTabBarProps> = ({
+export function CustomTabBar({
   state,
   descriptors,
   navigation,
-}) => {
+}: BottomTabBarProps) {
   return (
     <View style={styles.container}>
       {state.routes.map((route, index) => {
-        const { options } = descriptors[route.key];
+        const {options} = descriptors[route.key];
         const label =
           options.tabBarLabel !== undefined
             ? options.tabBarLabel
@@ -42,15 +36,11 @@ export const CustomTabBar: React.FC<BottomTabBarProps> = ({
           <TouchableOpacity
             key={route.key}
             accessibilityRole="button"
-            accessibilityState={isFocused ? { selected: true } : {}}
+            accessibilityState={isFocused ? {selected: true} : {}}
             accessibilityLabel={options.tabBarAccessibilityLabel}
             testID={options.tabBarTestID}
             onPress={onPress}
-            style={[
-              styles.tab,
-              isFocused && styles.tabFocused,
-            ]}
-          >
+            style={[styles.tab, isFocused && styles.tabFocused]}>
             {options.tabBarIcon &&
               options.tabBarIcon({
                 focused: isFocused,
@@ -58,11 +48,7 @@ export const CustomTabBar: React.FC<BottomTabBarProps> = ({
                 size: 24,
               })}
             <Text
-              style={[
-                styles.label,
-                { color: isFocused ? '#4CAF50' : '#999' },
-              ]}
-            >
+              style={[styles.label, {color: isFocused ? '#4CAF50' : '#999'}]}>
               {label as string}
             </Text>
           </TouchableOpacity>
@@ -70,7 +56,7 @@ export const CustomTabBar: React.FC<BottomTabBarProps> = ({
       })}
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -88,7 +74,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   tabFocused: {
-    transform: [{ scale: 1.05 }],
+    transform: [{scale: 1.05}],
   },
   label: {
     fontSize: 12,

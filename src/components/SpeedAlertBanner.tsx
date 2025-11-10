@@ -73,7 +73,9 @@ export function SpeedAlertBanner({ isActive, currentSpeed, threshold }: SpeedAle
     }
   }, [isActive, pulseAnim, slideAnim, opacityAnim]);
 
-  if (!isActive && !isVisible.current) return null;
+  if (!isActive && !isVisible.current) {
+    return null;
+  }
 
   const speedOver = Math.round(currentSpeed - threshold);
 
@@ -128,7 +130,7 @@ export function SpeedAlertBanner({ isActive, currentSpeed, threshold }: SpeedAle
         </View>
 
         <View style={[styles.overSpeedBadge, { backgroundColor: colors.background }]}>
-          <Text variant="bodySmall" style={{ color: colors.error, fontWeight: 'bold' }}>
+          <Text variant="bodySmall" style={[styles.overSpeedText, { color: colors.error }]}>
             Vượt {speedOver} km/h
           </Text>
         </View>
@@ -206,6 +208,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 16,
     marginTop: 4,
+  },
+  overSpeedText: {
+    fontWeight: 'bold',
   },
   message: {
     textAlign: 'center',

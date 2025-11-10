@@ -99,7 +99,9 @@ export const formatSpeed = (
 };
 
 export const calculatePace = (speedMS: number, useImperial: boolean = false): number => {
-  if (speedMS === 0) return 0;
+  if (speedMS === 0) {
+    return 0;
+  }
 
   const speedKMH = convertSpeed(speedMS, SpeedUnit.KMH);
   const pace = TIME_CONVERSION.MINUTE / speedKMH;

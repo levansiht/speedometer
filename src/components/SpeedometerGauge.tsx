@@ -139,8 +139,12 @@ export function SpeedometerGauge({
   }, [colors, maxSpeed]);
 
   const speedColor = useMemo(() => {
-    if (speedPercentage < 0.5) return colors.success;
-    if (speedPercentage < 0.75) return colors.warning;
+    if (speedPercentage < 0.5) {
+      return colors.success;
+    }
+    if (speedPercentage < 0.75) {
+      return colors.warning;
+    }
     return colors.error;
   }, [speedPercentage, colors]);
 

@@ -93,6 +93,11 @@ export const deleteTrip = async (id: number) => {
   await db.executeSql('DELETE FROM trips WHERE id = ?', [id]);
 };
 
+export const deleteAllTrips = async () => {
+  const db = await openDatabase();
+  await db.executeSql('DELETE FROM trips');
+};
+
 export const closeDatabase = async () => {
   if (database) {
     await database.close();
@@ -106,5 +111,6 @@ export const db = {
   getAllTrips,
   saveTrip,
   deleteTrip,
+  deleteAllTrips,
   close: closeDatabase,
 };

@@ -2,7 +2,9 @@ import type { LatLng, Region } from 'react-native-maps';
 import type { LocationData, RoutePoint } from '../types';
 
 export function simplifyPolyline(points: LatLng[], tolerance: number = 0.0001): LatLng[] {
-  if (points.length <= 2) return points;
+  if (points.length <= 2) {
+    return points;
+  }
 
   let maxDistance = 0;
   let index = 0;
@@ -128,16 +130,12 @@ export function getColorBySpeed(speedKmh: number, maxSpeed: number = 120): strin
   const ratio = Math.min(speedKmh / maxSpeed, 1);
 
   if (ratio < 0.3) {
-    // Green: 0-36 km/h
     return '#10B981';
   } else if (ratio < 0.6) {
-    // Yellow: 36-72 km/h
     return '#F59E0B';
   } else if (ratio < 0.8) {
-    // Orange: 72-96 km/h
     return '#F97316';
   } else {
-    // Red: 96+ km/h
     return '#EF4444';
   }
 }
@@ -153,7 +151,9 @@ export function createRouteSegments(
   locations: LocationData[],
   segmentSize: number = 10
 ): RouteSegment[] {
-  if (locations.length === 0) return [];
+  if (locations.length === 0) {
+    return [];
+  }
 
   const segments: RouteSegment[] = [];
   let currentSegment: LocationData[] = [];
@@ -184,7 +184,9 @@ export function createRouteSegmentsFromPoints(
   points: RoutePoint[],
   segmentSize: number = 10
 ): RouteSegment[] {
-  if (points.length === 0) return [];
+  if (points.length === 0) {
+    return [];
+  }
 
   const segments: RouteSegment[] = [];
   let currentSegment: RoutePoint[] = [];
@@ -216,7 +218,9 @@ export function getZoomLevel(latitudeDelta: number): number {
 }
 
 export function optimizeRouteForZoom(route: LatLng[], zoomLevel: number): LatLng[] {
-  if (route.length < 100) return route;
+  if (route.length < 100) {
+    return route;
+  }
 
   let tolerance = 0.0001;
 
