@@ -49,7 +49,9 @@ export function VoiceSettings({onClose}: VoiceSettingsProps = {}) {
 
   const handleSave = useCallback(() => {
     Alert.alert('Đã lưu', 'Cài đặt giọng đọc đã được lưu thành công');
-    if (onClose) onClose();
+    if (onClose) {
+      onClose();
+    }
   }, [onClose]);
 
   return (

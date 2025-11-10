@@ -1,10 +1,22 @@
-import React, { useRef, useMemo, useCallback, useState, useEffect } from 'react';
-import { View, StyleSheet, TouchableOpacity, Platform, ActivityIndicator } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import MapView, { Polyline, Marker, PROVIDER_GOOGLE, Region } from 'react-native-maps';
-import { useTheme, useLocation, useTripManager } from '../hooks';
-import { Text } from './Text';
-import type { ColorScheme } from '../types/theme';
+import React, {useRef, useMemo, useCallback, useState, useEffect} from 'react';
+import {
+  View,
+  StyleSheet,
+  TouchableOpacity,
+  Platform,
+  ActivityIndicator,
+} from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
+import MapView, {
+  Polyline,
+  Marker,
+  PROVIDER_GOOGLE,
+  Region,
+} from 'react-native-maps';
+import {useTheme, useTripManager} from '../hooks';
+import {useLocationContext} from '../contexts';
+import {Text} from './Text';
+import type {ColorScheme} from '../types/theme';
 import {
   locationToLatLng,
   routePointToLatLng,
@@ -16,13 +28,15 @@ import {
 } from '../utils/mapHelpers';
 
 export function MapScreen() {
-  const { colors, isDark } = useTheme();
+  const {colors, isDark} = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { location, isTracking, permission } = useLocation({ autoStart: true });
-  const { currentTrip } = useTripManager();
+  const {location, isTracking, permission} = useLocationContext();
+  const {currentTrip} = useTripManager();
 
   const mapRef = useRef<MapView>(null);
-  const [mapType, setMapType] = useState<'standard' | 'satellite' | 'hybrid'>('standard');
+  const [mapType, setMapType] = useState<'standard' | 'satellite' | 'hybrid'>(
+    'standard',
+  );
   const [followUser, setFollowUser] = useState(true);
   const [region, setRegion] = useState<Region | null>(null);
   const [hasInitialized, setHasInitialized] = useState(false);
@@ -49,12 +63,16 @@ export function MapScreen() {
   };
 
   const routeSegments = useMemo(() => {
-    if (!currentTrip || currentTrip.route.length === 0) return [];
+    if (!currentTrip || currentTrip.route.length === 0) {
+      return [];
+    }
     return createRouteSegmentsFromPoints(currentTrip.route, 10);
   }, [currentTrip]);
 
   const optimizedRoute = useMemo(() => {
-    if (!region || !currentTrip || currentTrip.route.length === 0) return [];
+    if (!region || !currentTrip || currentTrip.route.length === 0) {
+      return [];
+    }
 
     const zoomLevel = getZoomLevel(region.latitudeDelta);
     const routeCoords = currentTrip.route.map(routePointToLatLng);
@@ -71,7 +89,9 @@ export function MapScreen() {
   }, [isTracking, permission, location]);
 
   useEffect(() => {
-    if (hasInitialized) return;
+    if (hasInitialized) {
+      return;
+    }
 
     const timeout = setTimeout(() => {
       console.log('GPS timeout - initializing without location');
@@ -90,7 +110,7 @@ export function MapScreen() {
           latitudeDelta: 0.01,
           longitudeDelta: 0.01,
         },
-        1000
+        1000,
       );
     }
   }, [currentLocation, hasInitialized]);
@@ -103,7 +123,7 @@ export function MapScreen() {
           latitudeDelta: 0.01,
           longitudeDelta: 0.01,
         },
-        500
+        500,
       );
     }
   }, [currentLocation, followUser, hasInitialized]);
@@ -117,7 +137,7 @@ export function MapScreen() {
           latitudeDelta: 0.01,
           longitudeDelta: 0.01,
         },
-        500
+        500,
       );
     }
   }, [currentLocation]);
@@ -126,15 +146,19 @@ export function MapScreen() {
     if (currentTrip && currentTrip.route.length > 0 && mapRef.current) {
       setFollowUser(false);
       const coords = currentTrip.route.map(routePointToLatLng);
-      const region = fitCoordinates(coords, 0.2);
-      mapRef.current.animateToRegion(region, 500);
+      const fitRegion = fitCoordinates(coords, 0.2);
+      mapRef.current.animateToRegion(fitRegion, 500);
     }
   }, [currentTrip]);
 
   const handleToggleMapType = useCallback(() => {
-    setMapType((prev) => {
-      if (prev === 'standard') return 'satellite';
-      if (prev === 'satellite') return 'hybrid';
+    setMapType(prev => {
+      if (prev === 'standard') {
+        return 'satellite';
+      }
+      if (prev === 'satellite') {
+        return 'hybrid';
+      }
       return 'standard';
     });
   }, []);
@@ -145,35 +169,37 @@ export function MapScreen() {
   }, []);
 
   const mapStyle = useMemo(() => {
-    if (!isDark) return undefined;
+    if (!isDark) {
+      return undefined;
+    }
 
     return [
       {
         elementType: 'geometry',
-        stylers: [{ color: '#242f3e' }],
+        stylers: [{color: '#242f3e'}],
       },
       {
         elementType: 'labels.text.stroke',
-        stylers: [{ color: '#242f3e' }],
+        stylers: [{color: '#242f3e'}],
       },
       {
         elementType: 'labels.text.fill',
-        stylers: [{ color: '#746855' }],
+        stylers: [{color: '#746855'}],
       },
       {
         featureType: 'road',
         elementType: 'geometry',
-        stylers: [{ color: '#38414e' }],
+        stylers: [{color: '#38414e'}],
       },
       {
         featureType: 'road',
         elementType: 'geometry.stroke',
-        stylers: [{ color: '#212a37' }],
+        stylers: [{color: '#212a37'}],
       },
       {
         featureType: 'water',
         elementType: 'geometry',
-        stylers: [{ color: '#17263c' }],
+        stylers: [{color: '#17263c'}],
       },
     ];
   }, [isDark]);
@@ -183,15 +209,17 @@ export function MapScreen() {
       {!mapReady && (
         <View style={styles.loadingOverlay}>
           <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={[styles.loadingText, { color: colors.text }]}>Đang tải bản đồ...</Text>
+          <Text style={[styles.loadingText, {color: colors.text}]}>
+            Đang tải bản đồ...
+          </Text>
         </View>
       )}
 
       {mapReady && !hasInitialized && (
         <View style={styles.gpsIndicator}>
           <ActivityIndicator size="small" color={colors.primary} />
-          <View style={{ marginLeft: 8 }}>
-            <Text variant="caption" style={{ color: colors.text }}>
+          <View style={{marginLeft: 8}}>
+            <Text variant="caption" style={{color: colors.text}}>
               {permission === 'granted'
                 ? isTracking
                   ? 'Đang tìm vệ tinh GPS...'
@@ -199,7 +227,9 @@ export function MapScreen() {
                 : 'Cần cấp quyền truy cập vị trí'}
             </Text>
             {location && (
-              <Text variant="caption" style={{ color: colors.success, fontSize: 10 }}>
+              <Text
+                variant="caption"
+                style={{color: colors.success, fontSize: 10}}>
                 GPS đã sẵn sàng! Lat: {location.coords.latitude.toFixed(5)}
               </Text>
             )}
@@ -225,8 +255,7 @@ export function MapScreen() {
         moveOnMarkerPress={false}
         onMapReady={() => setMapReady(true)}
         onRegionChangeComplete={onRegionChangeComplete}
-        customMapStyle={mapStyle}
-      >
+        customMapStyle={mapStyle}>
         {mapReady &&
           routeSegments.map((segment, index) => (
             <Polyline
@@ -242,16 +271,17 @@ export function MapScreen() {
         {currentLocation && (
           <Marker
             coordinate={currentLocation}
-            anchor={{ x: 0.5, y: 0.5 }}
+            anchor={{x: 0.5, y: 0.5}}
             flat={true}
-            rotation={location?.coords.heading ?? 0}
-          >
+            rotation={location?.coords.heading ?? 0}>
             <View style={styles.markerContainer}>
-              <View style={[styles.marker, { backgroundColor: colors.primary }]}>
+              <View style={[styles.marker, {backgroundColor: colors.primary}]}>
                 <View style={styles.markerInner} />
               </View>
               {location?.coords.heading !== undefined && (
-                <View style={[styles.heading, { borderTopColor: colors.primary }]} />
+                <View
+                  style={[styles.heading, {borderTopColor: colors.primary}]}
+                />
               )}
             </View>
           </Marker>
@@ -260,11 +290,14 @@ export function MapScreen() {
 
       <View style={styles.controls}>
         <TouchableOpacity
-          style={[styles.controlButton, { backgroundColor: colors.surface }]}
-          onPress={handleToggleMapType}
-        >
+          style={[styles.controlButton, {backgroundColor: colors.surface}]}
+          onPress={handleToggleMapType}>
           <Text variant="body" color="primary">
-            {mapType === 'standard' ? '🗺️' : mapType === 'satellite' ? '🛰️' : '🌍'}
+            {mapType === 'standard'
+              ? '🗺️'
+              : mapType === 'satellite'
+              ? '🛰️'
+              : '🌍'}
           </Text>
         </TouchableOpacity>
 
@@ -275,8 +308,7 @@ export function MapScreen() {
               backgroundColor: followUser ? colors.primary : colors.surface,
             },
           ]}
-          onPress={handleCenterLocation}
-        >
+          onPress={handleCenterLocation}>
           <Text variant="body" color={followUser ? 'inverse' : 'primary'}>
             📍
           </Text>
@@ -284,9 +316,8 @@ export function MapScreen() {
 
         {currentTrip && currentTrip.route.length > 0 && (
           <TouchableOpacity
-            style={[styles.controlButton, { backgroundColor: colors.surface }]}
-            onPress={handleFitRoute}
-          >
+            style={[styles.controlButton, {backgroundColor: colors.surface}]}
+            onPress={handleFitRoute}>
             <Text variant="body" color="primary">
               🔍
             </Text>
@@ -295,7 +326,7 @@ export function MapScreen() {
       </View>
 
       {currentTrip && currentTrip.route.length > 0 && (
-        <View style={[styles.statsOverlay, { backgroundColor: colors.surface }]}>
+        <View style={[styles.statsOverlay, {backgroundColor: colors.surface}]}>
           <View style={styles.statItem}>
             <Text variant="caption" color="secondary">
               Điểm route
@@ -325,31 +356,31 @@ export function MapScreen() {
         </View>
       )}
 
-      <View style={[styles.legend, { backgroundColor: colors.surface }]}>
+      <View style={[styles.legend, {backgroundColor: colors.surface}]}>
         <Text variant="caption" color="secondary" style={styles.legendTitle}>
           Tốc độ:
         </Text>
         <View style={styles.legendItems}>
           <View style={styles.legendItem}>
-            <View style={[styles.legendColor, { backgroundColor: '#10B981' }]} />
+            <View style={[styles.legendColor, {backgroundColor: '#10B981'}]} />
             <Text variant="caption" color="secondary">
               0-36
             </Text>
           </View>
           <View style={styles.legendItem}>
-            <View style={[styles.legendColor, { backgroundColor: '#F59E0B' }]} />
+            <View style={[styles.legendColor, {backgroundColor: '#F59E0B'}]} />
             <Text variant="caption" color="secondary">
               36-72
             </Text>
           </View>
           <View style={styles.legendItem}>
-            <View style={[styles.legendColor, { backgroundColor: '#F97316' }]} />
+            <View style={[styles.legendColor, {backgroundColor: '#F97316'}]} />
             <Text variant="caption" color="secondary">
               72-96
             </Text>
           </View>
           <View style={styles.legendItem}>
-            <View style={[styles.legendColor, { backgroundColor: '#EF4444' }]} />
+            <View style={[styles.legendColor, {backgroundColor: '#EF4444'}]} />
             <Text variant="caption" color="secondary">
               96+
             </Text>
@@ -382,7 +413,7 @@ const createStyles = (colors: ColorScheme) =>
       justifyContent: 'center',
       alignItems: 'center',
       shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
+      shadowOffset: {width: 0, height: 2},
       shadowOpacity: 0.25,
       shadowRadius: 4,
       elevation: 5,
@@ -427,7 +458,7 @@ const createStyles = (colors: ColorScheme) =>
       flexDirection: 'row',
       justifyContent: 'space-around',
       shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
+      shadowOffset: {width: 0, height: 2},
       shadowOpacity: 0.25,
       shadowRadius: 4,
       elevation: 5,
@@ -446,7 +477,7 @@ const createStyles = (colors: ColorScheme) =>
       borderRadius: 8,
       padding: 12,
       shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
+      shadowOffset: {width: 0, height: 2},
       shadowOpacity: 0.25,
       shadowRadius: 4,
       elevation: 5,
@@ -495,7 +526,7 @@ const createStyles = (colors: ColorScheme) =>
       borderRadius: 8,
       padding: 12,
       shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
+      shadowOffset: {width: 0, height: 2},
       shadowOpacity: 0.15,
       shadowRadius: 4,
       elevation: 3,

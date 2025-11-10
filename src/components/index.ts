@@ -6,5 +6,5 @@ export * from './SpeedAlertBanner';
 export * from './SpeedAlertSettings';
 export * from './MapScreen';
 export * from './Text';
-export * from './CompassIndicator';
+
 export * from './VoiceSettings';

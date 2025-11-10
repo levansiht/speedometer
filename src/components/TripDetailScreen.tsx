@@ -1,43 +1,38 @@
-import React, { useMemo, useState } from 'react';
+import React, {useMemo, useState} from 'react';
 import {
   View,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
   useWindowDimensions,
-  Alert,
-  ActionSheetIOS,
-  Platform,
-  ActivityIndicator,
-  Modal,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import MapView, { Polyline, Marker, PROVIDER_GOOGLE } from 'react-native-maps';
-import { useTheme } from '../hooks';
-import { Text } from './Text';
-import { SpeedUnit, type Trip } from '../types';
-import type { ColorScheme } from '../types/theme';
-import { convertSpeed, formatDistance } from '../constants/Units';
-import { exportService } from '../services/ExportService';
-import { createRouteSegmentsFromPoints, getColorBySpeed } from '../utils/mapHelpers';
+import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
+import MapView, {Polyline, Marker, PROVIDER_GOOGLE} from 'react-native-maps';
+import {useTheme} from '../hooks';
+import {Text} from './Text';
+import {SpeedUnit, type Trip} from '../types';
+import type {ColorScheme} from '../types/theme';
+import {convertSpeed, formatDistance} from '../constants/Units';
+import {
+  createRouteSegmentsFromPoints,
+  getColorBySpeed,
+} from '../utils/mapHelpers';
 
 interface TripDetailScreenProps {
   trip: Trip;
   onClose: () => void;
 }
 
-export function TripDetailScreen({ trip, onClose }: TripDetailScreenProps) {
-  const { colors } = useTheme();
-  const { width, height } = useWindowDimensions();
+export function TripDetailScreen({trip, onClose}: TripDetailScreenProps) {
+  const {colors} = useTheme();
+  const {width, height} = useWindowDimensions();
   const insets = useSafeAreaInsets();
-  const [selectedTab, setSelectedTab] = useState<'map' | 'stats' | 'chart'>('map');
-  const [isExporting, setIsExporting] = useState(false);
-  const [previewContent, setPreviewContent] = useState<string | null>(null);
-  const [previewTitle, setPreviewTitle] = useState<string>('');
+  const [selectedTab, setSelectedTab] = useState<'map' | 'stats'>('map');
+  // Removed export and preview state
 
   const styles = useMemo(
     () => createStyles(colors, width, height, insets.bottom),
-    [colors, width, height, insets.bottom]
+    [colors, width, height, insets.bottom],
   );
 
   const mapRegion = useMemo(() => {
@@ -50,8 +45,8 @@ export function TripDetailScreen({ trip, onClose }: TripDetailScreenProps) {
       };
     }
 
-    const lats = trip.route.map((p) => p.latitude);
-    const lngs = trip.route.map((p) => p.longitude);
+    const lats = trip.route.map(p => p.latitude);
+    const lngs = trip.route.map(p => p.longitude);
 
     const minLat = Math.min(...lats);
     const maxLat = Math.max(...lats);
@@ -71,7 +66,9 @@ export function TripDetailScreen({ trip, onClose }: TripDetailScreenProps) {
 
   // Use smaller segment size to show color variations more granularly in history
   const routeSegments = useMemo(() => {
-    if (!trip.route || trip.route.length < 2) return [];
+    if (!trip.route || trip.route.length < 2) {
+      return [];
+    }
     return createRouteSegmentsFromPoints(trip.route, 5);
   }, [trip.route]);
 
@@ -103,118 +100,11 @@ export function TripDetailScreen({ trip, onClose }: TripDetailScreenProps) {
     return `${secs}s`;
   };
 
-  const handleExportGPX = async () => {
-    try {
-      setIsExporting(true);
-      await exportService.exportAndShareGPX(trip);
-    } catch (error) {
-      Alert.alert(
-        'Lỗi xuất file',
-        error instanceof Error ? error.message : 'Không thể xuất file GPX',
-        [{ text: 'OK' }]
-      );
-    } finally {
-      setIsExporting(false);
-    }
-  };
-
-  const handleExportJSON = async () => {
-    try {
-      setIsExporting(true);
-      await exportService.exportAndShareJSON(trip);
-    } catch (error) {
-      Alert.alert(
-        'Lỗi xuất file',
-        error instanceof Error ? error.message : 'Không thể xuất file JSON',
-        [{ text: 'OK' }]
-      );
-    } finally {
-      setIsExporting(false);
-    }
-  };
-
-  const handlePreviewGPX = () => {
-    const gpxContent = exportService.generateGPX(trip);
-    setPreviewTitle('📄 Preview: GPX File');
-    setPreviewContent(gpxContent);
-  };
-
-  const handlePreviewJSON = () => {
-    const jsonContent = exportService.generateJSON(trip);
-    setPreviewTitle('📄 Preview: JSON File');
-    setPreviewContent(jsonContent);
-  };
-
-  const handlePreviewText = () => {
-    const textContent = exportService.generateTextSummary(trip);
-    setPreviewTitle('📄 Preview: Text Summary');
-    setPreviewContent(textContent);
-  };
-
-  const handleShare = () => {
-    if (Platform.OS === 'ios') {
-      ActionSheetIOS.showActionSheetWithOptions(
-        {
-          options: [
-            'Hủy',
-            'Xem trước GPX',
-            'Xem trước JSON',
-            'Xem trước Text',
-            'Chia sẻ GPX',
-            'Chia sẻ JSON',
-          ],
-          cancelButtonIndex: 0,
-          title: 'Chọn hành động',
-        },
-        async (buttonIndex) => {
-          if (buttonIndex === 1) {
-            handlePreviewGPX();
-          } else if (buttonIndex === 2) {
-            handlePreviewJSON();
-          } else if (buttonIndex === 3) {
-            handlePreviewText();
-          } else if (buttonIndex === 4) {
-            await handleExportGPX();
-          } else if (buttonIndex === 5) {
-            await handleExportJSON();
-          }
-        }
-      );
-    } else {
-      Alert.alert(
-        'Chia sẻ hoặc xem trước',
-        'Chọn hành động:',
-        [
-          { text: 'Hủy', style: 'cancel' },
-          { text: 'Xem GPX', onPress: handlePreviewGPX },
-          { text: 'Xem JSON', onPress: handlePreviewJSON },
-          { text: 'Xem Text', onPress: handlePreviewText },
-          { text: 'Chia sẻ GPX', onPress: handleExportGPX },
-          { text: 'Chia sẻ JSON', onPress: handleExportJSON },
-        ],
-        { cancelable: true }
-      );
-    }
-  };
-
-  const handleShareText = async () => {
-    try {
-      setIsExporting(true);
-      await exportService.shareTextSummary(trip);
-    } catch (error) {
-      Alert.alert(
-        'Lỗi chia sẻ',
-        error instanceof Error ? error.message : 'Không thể chia sẻ văn bản',
-        [{ text: 'OK' }]
-      );
-    } finally {
-      setIsExporting(false);
-    }
-  };
+  // Removed export/share handlers
 
   const speedStats = useMemo(() => {
-    const speeds = trip.route.map((p) => p.speed);
-    const nonZeroSpeeds = speeds.filter((s) => s > 0);
+    const speeds = trip.route.map(p => p.speed);
+    const nonZeroSpeeds = speeds.filter(s => s > 0);
 
     return {
       avgSpeed: trip.stats.averageSpeed,
@@ -222,7 +112,9 @@ export function TripDetailScreen({ trip, onClose }: TripDetailScreenProps) {
       minSpeed: nonZeroSpeeds.length > 0 ? Math.min(...nonZeroSpeeds) : 0,
       medianSpeed:
         nonZeroSpeeds.length > 0
-          ? nonZeroSpeeds.sort((a, b) => a - b)[Math.floor(nonZeroSpeeds.length / 2)]
+          ? nonZeroSpeeds.sort((a, b) => a - b)[
+              Math.floor(nonZeroSpeeds.length / 2)
+            ]
           : 0,
     };
   }, [trip.route, trip.stats]);
@@ -233,8 +125,7 @@ export function TripDetailScreen({ trip, onClose }: TripDetailScreenProps) {
         provider={PROVIDER_GOOGLE}
         style={styles.map}
         initialRegion={mapRegion}
-        showsUserLocation
-      >
+        showsUserLocation>
         {routeSegments.map((segment, index) => (
           <Polyline
             key={`segment-${index}`}
@@ -271,31 +162,61 @@ export function TripDetailScreen({ trip, onClose }: TripDetailScreenProps) {
 
       {/* Speed Legend */}
       <View style={styles.speedLegend}>
-        <Text variant="caption" style={{ color: colors.textSecondary, marginBottom: 4 }}>
+        <Text
+          variant="caption"
+          style={{color: colors.textSecondary, marginBottom: 4}}>
           Màu theo tốc độ:
         </Text>
-        <View style={{ flexDirection: 'row', gap: 12 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-            <View style={{ width: 12, height: 12, backgroundColor: '#22c55e', borderRadius: 2 }} />
-            <Text variant="caption" style={{ color: colors.text }}>
+        <View style={{flexDirection: 'row', gap: 12}}>
+          <View style={{flexDirection: 'row', alignItems: 'center', gap: 4}}>
+            <View
+              style={{
+                width: 12,
+                height: 12,
+                backgroundColor: '#22c55e',
+                borderRadius: 2,
+              }}
+            />
+            <Text variant="caption" style={{color: colors.text}}>
               {'<30'}
             </Text>
           </View>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-            <View style={{ width: 12, height: 12, backgroundColor: '#eab308', borderRadius: 2 }} />
-            <Text variant="caption" style={{ color: colors.text }}>
+          <View style={{flexDirection: 'row', alignItems: 'center', gap: 4}}>
+            <View
+              style={{
+                width: 12,
+                height: 12,
+                backgroundColor: '#eab308',
+                borderRadius: 2,
+              }}
+            />
+            <Text variant="caption" style={{color: colors.text}}>
               30-60
             </Text>
           </View>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-            <View style={{ width: 12, height: 12, backgroundColor: '#f97316', borderRadius: 2 }} />
-            <Text variant="caption" style={{ color: colors.text }}>
+          <View style={{flexDirection: 'row', alignItems: 'center', gap: 4}}>
+            <View
+              style={{
+                width: 12,
+                height: 12,
+                backgroundColor: '#f97316',
+                borderRadius: 2,
+              }}
+            />
+            <Text variant="caption" style={{color: colors.text}}>
               60-90
             </Text>
           </View>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-            <View style={{ width: 12, height: 12, backgroundColor: '#ef4444', borderRadius: 2 }} />
-            <Text variant="caption" style={{ color: colors.text }}>
+          <View style={{flexDirection: 'row', alignItems: 'center', gap: 4}}>
+            <View
+              style={{
+                width: 12,
+                height: 12,
+                backgroundColor: '#ef4444',
+                borderRadius: 2,
+              }}
+            />
+            <Text variant="caption" style={{color: colors.text}}>
               {'>90'}
             </Text>
           </View>
@@ -305,7 +226,9 @@ export function TripDetailScreen({ trip, onClose }: TripDetailScreenProps) {
   );
 
   const renderStats = () => (
-    <ScrollView style={styles.statsContainer} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      style={styles.statsContainer}
+      showsVerticalScrollIndicator={false}>
       {/* Time Info */}
       <View style={styles.section}>
         <Text variant="h3" color="primary" style={styles.sectionTitle}>
@@ -418,7 +341,7 @@ export function TripDetailScreen({ trip, onClose }: TripDetailScreenProps) {
         </View>
       </View>
 
-      {trip.route.some((p) => p.altitude !== undefined) && (
+      {trip.route.some(p => p.altitude !== undefined) && (
         <View style={styles.section}>
           <Text variant="h3" color="primary" style={styles.sectionTitle}>
             ⛰️ Độ cao
@@ -428,7 +351,7 @@ export function TripDetailScreen({ trip, onClose }: TripDetailScreenProps) {
               Cao nhất:
             </Text>
             <Text variant="body" color="primary">
-              {Math.max(...trip.route.map((p) => p.altitude || 0)).toFixed(1)} m
+              {Math.max(...trip.route.map(p => p.altitude || 0)).toFixed(1)} m
             </Text>
           </View>
           <View style={styles.statRow}>
@@ -437,7 +360,9 @@ export function TripDetailScreen({ trip, onClose }: TripDetailScreenProps) {
             </Text>
             <Text variant="body" color="primary">
               {Math.min(
-                ...trip.route.filter((p) => p.altitude !== undefined).map((p) => p.altitude!)
+                ...trip.route
+                  .filter(p => p.altitude !== undefined)
+                  .map(p => p.altitude!),
               ).toFixed(1)}{' '}
               m
             </Text>
@@ -447,19 +372,7 @@ export function TripDetailScreen({ trip, onClose }: TripDetailScreenProps) {
     </ScrollView>
   );
 
-  const renderChart = () => (
-    <View style={styles.chartContainer}>
-      <Text variant="h3" color="primary" style={styles.chartTitle}>
-        📈 Biểu đồ
-      </Text>
-      <Text variant="body" color="secondary" style={styles.chartPlaceholder}>
-        Chart feature coming soon...
-      </Text>
-      <Text variant="bodySmall" color="secondary" style={styles.chartDescription}>
-        Sẽ hiển thị biểu đồ tốc độ theo thời gian và độ cao
-      </Text>
-    </View>
-  );
+  // Chart feature removed
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
@@ -476,40 +389,23 @@ export function TripDetailScreen({ trip, onClose }: TripDetailScreenProps) {
       <View style={styles.tabs}>
         <TouchableOpacity
           style={[styles.tab, selectedTab === 'map' && styles.tabActive]}
-          onPress={() => setSelectedTab('map')}
-        >
+          onPress={() => setSelectedTab('map')}>
           <Text
             variant="body"
             color={selectedTab === 'map' ? 'primary' : 'secondary'}
-            style={styles.tabText}
-          >
+            style={styles.tabText}>
             🗺️ Bản đồ
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={[styles.tab, selectedTab === 'stats' && styles.tabActive]}
-          onPress={() => setSelectedTab('stats')}
-        >
+          onPress={() => setSelectedTab('stats')}>
           <Text
             variant="body"
             color={selectedTab === 'stats' ? 'primary' : 'secondary'}
-            style={styles.tabText}
-          >
+            style={styles.tabText}>
             📊 Thống kê
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.tab, selectedTab === 'chart' && styles.tabActive]}
-          onPress={() => setSelectedTab('chart')}
-        >
-          <Text
-            variant="body"
-            color={selectedTab === 'chart' ? 'primary' : 'secondary'}
-            style={styles.tabText}
-          >
-            📈 Biểu đồ
           </Text>
         </TouchableOpacity>
       </View>
@@ -517,89 +413,11 @@ export function TripDetailScreen({ trip, onClose }: TripDetailScreenProps) {
       <View style={styles.content}>
         {selectedTab === 'map' && renderMap()}
         {selectedTab === 'stats' && renderStats()}
-        {selectedTab === 'chart' && renderChart()}
       </View>
 
-      <View style={styles.actions}>
-        <TouchableOpacity
-          style={[styles.actionButton, isExporting && styles.actionButtonDisabled]}
-          onPress={handleShare}
-          disabled={isExporting}
-        >
-          {isExporting ? (
-            <ActivityIndicator size="small" color={colors.primary} />
-          ) : (
-            <Text variant="body" color="primary">
-              🔗 Chia sẻ
-            </Text>
-          )}
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.actionButton, isExporting && styles.actionButtonDisabled]}
-          onPress={handleExportGPX}
-          disabled={isExporting}
-        >
-          {isExporting ? (
-            <ActivityIndicator size="small" color={colors.primary} />
-          ) : (
-            <Text variant="body" color="primary">
-              📤 Xuất GPX
-            </Text>
-          )}
-        </TouchableOpacity>
-      </View>
+      {/* Export/share actions removed */}
 
-      {/* Preview Modal */}
-      <Modal
-        visible={previewContent !== null}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setPreviewContent(null)}
-      >
-        <SafeAreaView style={styles.previewContainer} edges={['top', 'left', 'right']}>
-          <View style={styles.previewHeader}>
-            <TouchableOpacity
-              style={styles.previewCloseButton}
-              onPress={() => setPreviewContent(null)}
-            >
-              <Text variant="h2">←</Text>
-            </TouchableOpacity>
-            <Text variant="h3" color="primary">
-              {previewTitle}
-            </Text>
-            <View style={styles.headerSpacer} />
-          </View>
-
-          <ScrollView
-            style={styles.previewScrollView}
-            contentContainerStyle={styles.previewContent}
-          >
-            <Text variant="bodySmall" style={styles.previewText} selectable>
-              {previewContent}
-            </Text>
-          </ScrollView>
-
-          <View style={styles.previewActions}>
-            <TouchableOpacity
-              style={styles.previewActionButton}
-              onPress={() => {
-                setPreviewContent(null);
-                if (previewTitle.includes('GPX')) {
-                  handleExportGPX();
-                } else if (previewTitle.includes('JSON')) {
-                  handleExportJSON();
-                } else {
-                  handleShareText();
-                }
-              }}
-            >
-              <Text variant="body" color="primary">
-                📤 Chia sẻ file này
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </SafeAreaView>
-      </Modal>
+      {/* Preview/Export modal removed */}
     </SafeAreaView>
   );
 }
@@ -608,7 +426,7 @@ const createStyles = (
   colors: ColorScheme,
   screenWidth: number,
   _screenHeight: number,
-  bottomInset: number = 0
+  bottomInset: number = 0,
 ) => {
   const isSmallScreen = screenWidth < 375;
 
@@ -672,7 +490,7 @@ const createStyles = (
       borderWidth: 1,
       borderColor: colors.border,
       shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
+      shadowOffset: {width: 0, height: 2},
       shadowOpacity: 0.25,
       shadowRadius: 3.84,
       elevation: 5,
@@ -782,7 +600,7 @@ const createStyles = (
       padding: isSmallScreen ? 12 : 16,
     },
     previewText: {
-      fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+      fontFamily: 'monospace',
       fontSize: isSmallScreen ? 11 : 12,
       lineHeight: isSmallScreen ? 16 : 18,
       color: colors.text,

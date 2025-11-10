@@ -11,7 +11,9 @@ const DATABASE_NAME = 'speedometer.db';
 let database: SQLite.SQLiteDatabase | null = null;
 
 export const openDatabase = async (): Promise<SQLite.SQLiteDatabase> => {
-  if (database) return database;
+  if (database) {
+    return database;
+  }
 
   database = await SQLite.openDatabase({
     name: DATABASE_NAME,
@@ -23,7 +25,9 @@ export const openDatabase = async (): Promise<SQLite.SQLiteDatabase> => {
 };
 
 const initTables = async () => {
-  if (!database) return;
+  if (!database) {
+    return;
+  }
 
   await database.executeSql(`
     CREATE TABLE IF NOT EXISTS trips (

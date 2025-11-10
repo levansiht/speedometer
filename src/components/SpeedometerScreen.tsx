@@ -11,7 +11,8 @@ import {
   Modal,
 } from 'react-native';
 import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
-import {useLocation, useTheme, useTripManager, useSpeedAlert} from '../hooks';
+import {useTheme, useTripManager, useSpeedAlert} from '../hooks';
+import {useLocationContext} from '../contexts';
 import {SpeedometerGauge} from './SpeedometerGauge';
 import {SpeedAlertBanner} from './SpeedAlertBanner';
 import {VoiceSettings} from './VoiceSettings';
@@ -21,8 +22,10 @@ import {SpeedUnit, PermissionStatus, TripStatus} from '../types';
 import type {ColorScheme} from '../types/theme';
 import {convertSpeed, formatDistance} from '../constants/Units';
 import {voiceService} from '../services/VoiceService';
+import {useAppStateNotification} from '../hooks/useAppStateNotification';
 
 export function SpeedometerScreen() {
+  useAppStateNotification();
   const {colors, isDark, toggleTheme} = useTheme();
   const insets = useSafeAreaInsets();
   const styles = useMemo(
@@ -58,9 +61,7 @@ export function SpeedometerScreen() {
     isLoading,
     requestPermission,
     startTracking: startGPSTracking,
-  } = useLocation({
-    autoStart: false,
-  });
+  } = useLocationContext();
 
   const {
     currentTrip,
@@ -133,7 +134,9 @@ export function SpeedometerScreen() {
   }, [error]);
 
   useEffect(() => {
-    if (!currentTrip) return;
+    if (!currentTrip) {
+      return;
+    }
 
     const handleTripEvents = async () => {
       if (
